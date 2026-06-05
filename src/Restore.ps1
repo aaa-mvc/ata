@@ -11,44 +11,27 @@
 function Start-ATAApp {
     param($Window, [int]$Timeout = 15)
     $name = $Window.process.name
-
     $existing = Get-Process -Name $name -ErrorAction SilentlyContinue
     if ($existing) {
         $main = $existing | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
-        if ($main) {
-            Write-Host "   ... $name already running" -ForegroundColor Gray
-            return $main
-        }
+        if ($main) { Write-Host "   ... $name already running" -ForegroundColor Gray; return $main }
     }
-
-    try {
-        $exePath = $Window.process.executablePath
-
-        # 优先：用可执行文件路径启动
-        if ($exePath -and (Test-Path $exePath)) {
-            $proc = Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
-        }
-        else {
-            # 回退：直接用进程名
-            $proc = Start-Process -FilePath "$name.exe" -PassThru -WindowStyle Normal
-        }
-
-        $waited = 0
-        while ($waited -lt $Timeout) {
-            Start-Sleep -Milliseconds 500
-            $waited += 0.5
-            $fresh = Get-Process -Name $name -ErrorAction SilentlyContinue |
-                Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
-            if ($fresh) { return $fresh }
-        }
-
-        Write-Warning "   $name started but window not detected within ${Timeout}s."
-        return $proc
+    $proc = $null
+    $exePath = $Window.process.executablePath
+    if ($exePath -and (Test-Path $exePath)) {
+        $proc = Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
+    } else {
+        $proc = Start-Process -FilePath "$name.exe" -PassThru -WindowStyle Normal
     }
-    catch {
-        Write-Warning "   Failed to start $name : $_"
-        return $null
+    $waited = 0
+    while ($waited -lt $Timeout -and $proc) {
+        Start-Sleep -Milliseconds 500
+        $waited += 0.5
+        $fresh = Get-Process -Name $name -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+        if ($fresh) { return $fresh }
     }
+    if ($proc) { Write-Warning "   $name started but window not detected in ${Timeout}s."; return $proc }
+    return $null
 }
 
 # ============================================================
