@@ -28,5 +28,7 @@ if %errorlevel% equ 0 (
 )
 
 echo.
-echo Done. You can close this window.
+echo ========================================
+echo   Done! Press any key to close...
+echo ========================================
 pause >nul
