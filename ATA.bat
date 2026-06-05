@@ -13,10 +13,10 @@ if %errorlevel% equ 0 (
     echo.
     echo ========================================
     echo   Today's snapshot FOUND.
-    echo   RESTORING your workspace now...
+    echo   Picking the best one (most windows)...
     echo ========================================
     echo.
-    powershell -ExecutionPolicy Bypass -File ".\ata.ps1" restore -SkipMissing -Yes
+    powershell -ExecutionPolicy Bypass -Command "$snaps=@(Get-ChildItem \"$env:APPDATA\ATA\snapshots\ata-%td%*.json\");$best=$snaps[0];$max=0;foreach($s in $snaps){$d=Get-Content $s.FullName -Raw|ConvertFrom-Json;$c=$d.snapshot.windows.Count;if($c -gt $max){$max=$c;$best=$s}};Write-Host ('Restoring: '+$best.Name+' ('+$max+' windows)');cd D:\Hi\Projects\ata;.\ata.ps1 restore -SnapshotPath $best.FullName -SkipMissing -Yes
 ) else (
     echo.
     echo ========================================
