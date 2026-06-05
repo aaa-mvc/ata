@@ -300,27 +300,22 @@ function Restore-ATA {
         $hwnd = $proc.MainWindowHandle
 
         if ($hwnd -ne [IntPtr]::Zero) {
-            if ($mapper) {
+            $x = $window.bounds.x
+            $y = $window.bounds.y
+            if ($mapper -and $mapper.monitors) {
                 $mi = $window.monitor
-                if ($mi -ge $mapper.monitors.Count) { $mi = $mapper.monitors.Count - 1 }
                 if ($mi -lt 0) { $mi = 0 }
-                $cur = $mapper.monitors[$mi]
-                $x = $window.bounds.x
-                $y = $window.bounds.y
-                if ($x -lt $cur.bounds.x) { $x = $cur.bounds.x }
-                if ($y -lt $cur.bounds.y) { $y = $cur.bounds.y }
-                if (($x + $window.bounds.w) -gt ($cur.bounds.x + $cur.bounds.w)) {
-                    $x = $cur.bounds.x + $cur.bounds.w - $window.bounds.w
-                }
-                if (($y + $window.bounds.h) -gt ($cur.bounds.y + $cur.bounds.h)) {
-                    $y = $cur.bounds.y + $cur.bounds.h - $window.bounds.h
+                $monList = @($mapper.monitors)
+                if ($mi -ge $monList.Count) { $mi = $monList.Count - 1 }
+                if ($mi -ge 0 -and $mi -lt $monList.Count) {
+                    $cur = $monList[$mi]
+                    if ($x -lt $cur.bounds.x) { $x = $cur.bounds.x }
+                    if ($y -lt $cur.bounds.y) { $y = $cur.bounds.y }
+                    if (($x + $window.bounds.w) -gt ($cur.bounds.x + $cur.bounds.w)) { $x = $cur.bounds.x + $cur.bounds.w - $window.bounds.w }
+                    if (($y + $window.bounds.h) -gt ($cur.bounds.y + $cur.bounds.h)) { $y = $cur.bounds.y + $cur.bounds.h - $window.bounds.h }
                 }
                 if ($x -lt 0) { $x = 0 }
                 if ($y -lt 0) { $y = 0 }
-            }
-            else {
-                $x = $window.bounds.x
-                $y = $window.bounds.y
             }
             $null = Set-WindowPosition -Handle $hwnd -X $x -Y $y -Width $window.bounds.w -Height $window.bounds.h -State $window.state
         }
