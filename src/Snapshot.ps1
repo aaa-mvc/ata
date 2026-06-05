@@ -3,6 +3,7 @@
 
 . "$PSScriptRoot\Window.ps1"
 . "$PSScriptRoot\Monitor.ps1"
+. "$PSScriptRoot\Explorer.ps1"
 
 function Get-ProcessCommandLine {
     param([int]$ProcessId)
@@ -144,6 +145,24 @@ function Save-ATA {
     Write-Host "   $($monitors.Count) monitor(s)."
     Write-Host "Detecting focused window..." -ForegroundColor Cyan
     Mark-FocusedWindow -Windows $windows
+    # File Explorer 文件夹窗口
+    Write-Host "📁 Detecting Explorer windows..." -ForegroundColor Cyan
+    $explorerWindows = Get-ExplorerWindows
+    Write-Host "   Found $($explorerWindows.Count) folder window(s)."
+    foreach ($ew in $explorerWindows) {
+        $windowId++
+        $windows += @{
+            id = "w-$($windowId.ToString('000'))"
+            process = @{ name = "explorer"; pid = 0; commandLine = $null; executablePath = "C:\Windows\explorer.exe" }
+            title = $ew.title
+            class = "CabinetWClass"
+            bounds = @{ x = 0; y = 0; width = 800; height = 600 }
+            state = "normal"; monitor = 0; virtualDesktop = $null; zOrder = $windowId
+            hadFocus = $false; restorable = $true; platform = "win32"
+            adapter = "explorer"; appState = @{ folderPath = $ew.path }
+            eventContext = $null; restoreHooks = $null
+        }
+    }
     $osInfo = (Get-CimInstance Win32_OperatingSystem).Caption
     $snapData = @{
         id = $snapshotId
@@ -178,3 +197,6 @@ function Save-ATA {
     else { Write-Host "   Integrity: FAIL" -ForegroundColor Red }
     return $OutputPath
 }
+
+
+

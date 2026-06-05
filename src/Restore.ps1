@@ -1,13 +1,12 @@
-# Restore.ps1 — 恢复引擎
-# 镜头 015-019：应用启动 · 窗口归位 · 坐标映射 · 主恢复 · 日志清理
+﻿# Restore.ps1 鈥?鎭㈠寮曟搸
+# 闀滃ご 015-019锛氬簲鐢ㄥ惎鍔?路 绐楀彛褰掍綅 路 鍧愭爣鏄犲皠 路 涓绘仮澶?路 鏃ュ織娓呯悊
 
 . "$PSScriptRoot\Window.ps1"
 . "$PSScriptRoot\Monitor.ps1"
 . "$PSScriptRoot\Snapshot.ps1"
 
 # ============================================================
-# 015：Start-ATAApp — 应用启动器
-# ============================================================
+# 015锛歋tart-ATAApp 鈥?搴旂敤鍚姩鍣?# ============================================================
 function Start-ATAApp {
     param($Window, [int]$Timeout = 15)
     $name = $Window.process.name
@@ -35,7 +34,7 @@ function Start-ATAApp {
 }
 
 # ============================================================
-# 016：Set-WindowPosition — 窗口归位
+# 016锛歋et-WindowPosition 鈥?绐楀彛褰掍綅
 # ============================================================
 function Set-WindowPosition {
     param(
@@ -67,12 +66,12 @@ function Set-WindowPosition {
 }
 
 # ============================================================
-# 017：Get-CoordinateMapping — 显示器适配
+# 017锛欸et-CoordinateMapping 鈥?鏄剧ず鍣ㄩ€傞厤
 # ============================================================
 function Get-CoordinateMapping {
     param([array]$SavedMonitors, [array]$CurrentMonitors)
 
-    # 相同配置 → 无需映射
+    # 鐩稿悓閰嶇疆 鈫?鏃犻渶鏄犲皠
     if ($SavedMonitors.Count -eq $CurrentMonitors.Count) {
         $same = $true
         for ($i = 0; $i -lt $SavedMonitors.Count; $i++) {
@@ -90,13 +89,12 @@ function Get-CoordinateMapping {
 
     Write-Host "   Monitor config changed." -ForegroundColor Yellow
 
-    # 返回当前显示器数组，Restore-ATA 用它做 clamp
+    # 杩斿洖褰撳墠鏄剧ず鍣ㄦ暟缁勶紝Restore-ATA 鐢ㄥ畠鍋?clamp
     return @{ changed = $true; monitors = $CurrentMonitors }
 }
 
 # ============================================================
-# 辅助：快照解析
-# ============================================================
+# 杈呭姪锛氬揩鐓цВ鏋?# ============================================================
 function Resolve-ATASnapshot {
     param([string]$Date)
     $dir = "$env:APPDATA\ATA\snapshots"
@@ -117,7 +115,7 @@ function Get-LatestSnapshot {
 }
 
 # ============================================================
-# Write-ATALogEntry — 日志追加
+# Write-ATALogEntry 鈥?鏃ュ織杩藉姞
 # ============================================================
 function Write-ATALogEntry {
     param([string]$Action, [string]$SnapshotId, $Results)
@@ -137,7 +135,7 @@ function Write-ATALogEntry {
 }
 
 # ============================================================
-# 019：Get-ATASnapshots + Invoke-ATAClean
+# 019锛欸et-ATASnapshots + Invoke-ATAClean
 # ============================================================
 function Get-ATASnapshots {
     param([string]$Date, [int]$Last = 10)
@@ -182,8 +180,7 @@ function Invoke-ATAClean {
 }
 
 # ============================================================
-# 018：Restore-ATA — 主恢复函数
-# ============================================================
+# 018锛歊estore-ATA 鈥?涓绘仮澶嶅嚱鏁?# ============================================================
 function Restore-ATA {
     param(
         [string]$SnapshotPath,
@@ -194,7 +191,7 @@ function Restore-ATA {
         [int]$Timeout = 15
     )
 
-    # 1. 解析快照
+    # 1. 瑙ｆ瀽蹇収
     if ($Date) {
         $SnapshotPath = Resolve-ATASnapshot -Date $Date
         if (-not $SnapshotPath) {
@@ -215,8 +212,7 @@ function Restore-ATA {
     $s = $data.snapshot
     Write-Host "Snapshot: $($s.id) | $($s.created) | $($s.windows.Count) windows" -ForegroundColor Gray
 
-    # 2. 显示器对比
-    $currentMonitors = Get-MonitorInfo
+    # 2. 鏄剧ず鍣ㄥ姣?    $currentMonitors = Get-MonitorInfo
     $savedMonitors = $s.environment.monitors
     $mapper = Get-CoordinateMapping -SavedMonitors $savedMonitors -CurrentMonitors $currentMonitors
 
@@ -229,7 +225,7 @@ function Restore-ATA {
             $tag = if ($w.restorable) { "" } else { " [NOT RESTORABLE]" }
             $t = $w.title
             if ($t.Length -gt 60) { $t = $t.Substring(0, 60) + "..." }
-            Write-Host "  $($w.process.name) — $t$tag"
+            Write-Host "  $($w.process.name) 鈥?$t$tag"
         }
         if ($mapper -and $mapper.changed) {
             Write-Host "Monitor config changed: coordinates will adapt." -ForegroundColor Yellow
@@ -237,13 +233,13 @@ function Restore-ATA {
         return
     }
 
-    # 4. 确认
+    # 4. 纭
     if (-not $Yes) {
         Write-Host "About to restore $($s.windows.Count) windows."
         $null = Read-Host "  [Enter] to proceed, Ctrl+C to cancel"
     }
 
-    # 5. 逐个恢复
+    # 5. 閫愪釜鎭㈠
     $orderedWindows = $s.windows | Sort-Object { $_.zOrder }
     $results = @{
         total = $orderedWindows.Count
@@ -258,7 +254,7 @@ function Restore-ATA {
 
     foreach ($window in $orderedWindows) {
         if (-not $window.restorable) {
-            Write-Host "  SKIP $($window.process.name) — not restorable" -ForegroundColor Gray
+            Write-Host "  SKIP $($window.process.name) 鈥?not restorable" -ForegroundColor Gray
             $results.skipped++
             $results.details += @{
                 window = $window.id
@@ -269,12 +265,27 @@ function Restore-ATA {
             continue
         }
 
-        Write-Host "  LAUNCH $($window.process.name)..." -ForegroundColor Gray
+        
+        # Explorer 文件夹窗口特殊处理
+        if ($window.adapter -eq "explorer" -and $window.appState.folderPath) {
+            Write-Host "  OPEN $($window.appState.folderPath)" -ForegroundColor Gray
+            $result = Open-ExplorerWindow -Path $window.appState.folderPath
+            if ($result) {
+                $results.success++
+                $results.details += @{ window = $window.id; app = "explorer"; status = "success" }
+                Write-Host "    OK" -ForegroundColor Green
+            } else {
+                $results.skipped++
+                $results.details += @{ window = $window.id; app = "explorer"; status = "skipped"; reason = "path_not_found" }
+                Write-Host "    WARN — path not found" -ForegroundColor Yellow
+            }
+            continue
+        }Write-Host "  LAUNCH $($window.process.name)..." -ForegroundColor Gray
         $proc = Start-ATAApp -Window $window -Timeout $Timeout
 
         if (-not $proc) {
             if ($SkipMissing) {
-                Write-Host "    WARN — skipped" -ForegroundColor Yellow
+                Write-Host "    WARN 鈥?skipped" -ForegroundColor Yellow
                 $results.skipped++
                 $results.details += @{
                     window = $window.id
@@ -284,7 +295,7 @@ function Restore-ATA {
                 }
             }
             else {
-                Write-Host "    FAIL — failed" -ForegroundColor Red
+                Write-Host "    FAIL 鈥?failed" -ForegroundColor Red
                 $results.failed++
                 $results.details += @{
                     window = $window.id
@@ -325,7 +336,7 @@ function Restore-ATA {
         Write-Host "    OK" -ForegroundColor Green
     }
 
-    # 6. 恢复焦点
+    # 6. 鎭㈠鐒︾偣
     $focusWindow = $s.windows | Where-Object { $_.hadFocus } | Select-Object -First 1
     if ($focusWindow) {
         $fproc = Get-Process -Name $focusWindow.process.name -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -336,7 +347,7 @@ function Restore-ATA {
         }
     }
 
-    # 7. 报告
+    # 7. 鎶ュ憡
     Write-Host "`n====================================" -ForegroundColor Cyan
     Write-Host "Restore complete: $($results.success)/$($results.total) succeeded" -ForegroundColor Green
     if ($results.skipped -gt 0) {
@@ -353,8 +364,9 @@ function Restore-ATA {
     }
     Write-Host "====================================" -ForegroundColor Cyan
 
-    # 8. 日志
+    # 8. 鏃ュ織
     Write-ATALogEntry -Action "RESTORE" -SnapshotId $s.id -Results $results
 
     return $results
 }
+
