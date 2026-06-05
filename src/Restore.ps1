@@ -22,24 +22,14 @@ function Start-ATAApp {
     }
 
     try {
-        $cmdLine = $Window.process.commandLine
         $exePath = $Window.process.executablePath
 
-        if ($cmdLine) {
-            $parts = $cmdLine -split ' '
-            $exe = $parts[0]
-            $rest = $parts[1..($parts.Count - 1)]
-            if ($rest.Count -gt 0) {
-                $proc = Start-Process -FilePath $exe -ArgumentList $rest -PassThru -WindowStyle Normal
-            }
-            else {
-                $proc = Start-Process -FilePath $exe -PassThru -WindowStyle Normal
-            }
-        }
-        elseif ($exePath -and (Test-Path $exePath)) {
+        # 优先：用可执行文件路径启动
+        if ($exePath -and (Test-Path $exePath)) {
             $proc = Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
         }
         else {
+            # 回退：直接用进程名
             $proc = Start-Process -FilePath "$name.exe" -PassThru -WindowStyle Normal
         }
 
