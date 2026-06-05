@@ -100,6 +100,21 @@ function Install-ATA {
     if (-not (Test-Path $ecoDir)) { New-Item -ItemType Directory -Path $ecoDir -Force | Out-Null }
     Register-ATAStartupTask
     Register-ATAShutdownHook
+
+    # 桌面一键恢复快捷方式
+    $desktopBat = [Environment]::GetFolderPath('Desktop') + '\ATA 恢复.bat'
+    $batLines = @(
+        '@echo off',
+        'title ATA - Restore Your Workspace',
+        'cd /d D:\Hi\Projects\ata',
+        'powershell -ExecutionPolicy Bypass -File ".\ata.ps1" restore -SkipMissing -Yes',
+        'echo.',
+        'echo Press any key to close...',
+        'pause >nul'
+    )
+    $batLines | Set-Content -Path $desktopBat -Encoding ASCII -Force
+    Write-Host "  Desktop: ATA 恢复.bat (double-click to restore)" -ForegroundColor Gray
+
     Write-Host "`nATA installed." -ForegroundColor Green
     Write-Host "  Startup dialog: on | Shutdown save: on (30min fallback)" -ForegroundColor Gray
 }
