@@ -9,7 +9,7 @@
 # 015：Start-ATAApp — 应用启动器
 # ============================================================
 function Start-ATAApp {
-    param([hashtable]$Window, [int]$Timeout = 15)
+    param($Window, [int]$Timeout = 15)
     $name = $Window.process.name
 
     $existing = Get-Process -Name $name -ErrorAction SilentlyContinue
