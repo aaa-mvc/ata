@@ -1,10 +1,10 @@
-# AnaBridge.ps1 — ANA ↔ ATA 桥接
-# 镜头 025：保存时写 Obsidian 日记 · 恢复时打开 Obsidian 对应日记
+﻿# AnaBridge.ps1 鈥?ANA 鈫?ATA 妗ユ帴
+# 闀滃ご 025锛氫繚瀛樻椂鍐?Obsidian 鏃ヨ 路 鎭㈠鏃舵墦寮€ Obsidian 瀵瑰簲鏃ヨ
 
 . "$PSScriptRoot\Snapshot.ps1"
 
 # ============================================================
-# ANA 配置读取
+# ANA 閰嶇疆璇诲彇
 # ============================================================
 function Get-ANAConfig {
     $configPath = "$env:APPDATA\ATA\config.json"
@@ -14,7 +14,7 @@ function Get-ANAConfig {
 }
 
 # ============================================================
-# 保存时：ATA → Obsidian 日记
+# 淇濆瓨鏃讹細ATA 鈫?Obsidian 鏃ヨ
 # ============================================================
 function Write-ANADailyNote {
     param(
@@ -39,19 +39,19 @@ function Write-ANADailyNote {
         $dailyFolder = "daily"
     }
 
-    # 读取快照
+    # 璇诲彇蹇収
     $data = Get-Content $SnapshotPath -Raw | ConvertFrom-Json
     $s = $data.snapshot
     $date = [DateTime]::Parse($s.created).ToString("yyyy-MM-dd")
     $noteDir = Join-Path $vaultPath $dailyFolder
     $notePath = Join-Path $noteDir "$date.md"
 
-    # 确保目录存在
+    # 纭繚鐩綍瀛樺湪
     if (-not (Test-Path $noteDir)) {
         New-Item -ItemType Directory -Path $noteDir -Force | Out-Null
     }
 
-    # 生成 Markdown
+    # 鐢熸垚 Markdown
     $markdown = @"
 ---
 date: $date
@@ -59,26 +59,25 @@ ata_snapshot: $($s.id)
 type: $($s.type)
 ---
 
-# $date 工作现场快照
+# $date 宸ヤ綔鐜板満蹇収
 
-> ATA 自动保存 · $($s.created) · $($s.windows.Count) apps · $($s.environment.monitors.Count) monitors
+> ATA 鑷姩淇濆瓨 路 $($s.created) 路 $($s.windows.Count) apps 路 $($s.environment.monitors.Count) monitors
 
-## 打开的应用
-
-| # | 应用 | 状态 |
+## 鎵撳紑鐨勫簲鐢?
+| # | 搴旂敤 | 鐘舵€?|
 |---|------|------|
 "@
 
     foreach ($w in $s.windows) {
-        $icon = if ($w.hadFocus) { "🎯" } else { "" }
+        $icon = if ($w.hadFocus) { "馃幆" } else { "" }
         $title = $w.title
         if ($title.Length -gt 40) { $title = $title.Substring(0, 40) + "..." }
         $markdown += "`n| $icon $($w.process.name) | $title | $($w.state) |"
     }
 
-    $markdown += "`n`n## 工作上下文`n"
+    $markdown += "`n`n## 宸ヤ綔涓婁笅鏂嘸n"
 
-    # 工作目录推测
+    # 宸ヤ綔鐩綍鎺ㄦ祴
     $workDirs = @{}
     foreach ($w in $s.windows) {
         $cl = $w.process.commandLine
@@ -89,28 +88,27 @@ type: $($s.type)
         }
     }
     if ($workDirs.Count -gt 0) {
-        $markdown += "`n### 工作目录`n"
+        $markdown += "`n### 宸ヤ綔鐩綍`n"
         foreach ($dir in $workDirs.Keys) {
-            $markdown += "- **$dir** — $($workDirs[$dir] -join ', ')`n"
+            $markdown += "- **$dir** 鈥?$($workDirs[$dir] -join ', ')`n"
         }
     }
 
-    # DeepSeek 洞察
+    # DeepSeek 娲炲療
     if ($DeepSeekInsight) {
-        $markdown += "`n## DeepSeek 洞察`n"
+        $markdown += "`n## DeepSeek 娲炲療`n"
         $markdown += "`n> $DeepSeekInsight`n"
     }
 
-    $markdown += "`n## 恢复`n"
+    $markdown += "`n## 鎭㈠`n"
     $markdown += "`n``````powershell`nata restore $($s.id)`n```````n"
 
-    $markdown += "`n---`n*此笔记由 ATA 自动生成。*`n"
+    $markdown += "`n---`n*姝ょ瑪璁扮敱 ATA 鑷姩鐢熸垚銆?`n"
 
-    # 写入
+    # 鍐欏叆
     if (Test-Path $notePath) {
         $existing = Get-Content $notePath -Raw
-        # 追加到已有日记末尾
-        $markdown = "`n`n---`n`n$markdown"
+        # 杩藉姞鍒板凡鏈夋棩璁版湯灏?        $markdown = "`n`n---`n`n$markdown"
         Add-Content -Path $notePath -Value $markdown -Encoding UTF8
     } else {
         Set-Content -Path $notePath -Value $markdown -Encoding UTF8
@@ -120,7 +118,7 @@ type: $($s.type)
 }
 
 # ============================================================
-# 恢复时：ATA → 打开 Obsidian 日记
+# 鎭㈠鏃讹細ATA 鈫?鎵撳紑 Obsidian 鏃ヨ
 # ============================================================
 function Open-ANADailyNote {
     param(
@@ -140,7 +138,7 @@ function Open-ANADailyNote {
 
     $notePath = Join-Path $vault $dailyFolder "$Date.md"
 
-    # 用 Obsidian URI 打开
+    # 鐢?Obsidian URI 鎵撳紑
     $vaultName = Split-Path $vault -Leaf
     $obsidianUri = "obsidian://open?vault=" + [uri]::EscapeDataString($vaultName) + `
         "&file=" + [uri]::EscapeDataString("$dailyFolder/$Date.md")
@@ -150,7 +148,7 @@ function Open-ANADailyNote {
 }
 
 # ============================================================
-# 增强版 Save-ATA：带 ANA 桥接 + DeepSeek 洞察
+# 澧炲己鐗?Save-ATA锛氬甫 ANA 妗ユ帴 + DeepSeek 娲炲療
 # ============================================================
 function Save-ATA-Full {
     param(
@@ -158,17 +156,17 @@ function Save-ATA-Full {
         [string]$Type = 'manual'
     )
 
-    # 1. 保存快照
+    # 1. 淇濆瓨蹇収
     $path = Save-ATA -Type $Type
 
-    # 2. DeepSeek 即时洞察
+    # 2. DeepSeek 鍗虫椂娲炲療
     $insight = $null
     $cfg = Get-Content "$env:APPDATA\ATA\config.json" -Raw | ConvertFrom-Json
     if ($cfg.deepseek.enabled) {
         $insight = Get-ATAInsight -Level instant -SnapshotPath $path
     }
 
-    # 3. 写 ANA 日记
+    # 3. 鍐?ANA 鏃ヨ
     $anaCfg = Get-ANAConfig
     if ($anaCfg -and $anaCfg.enabled -and $anaCfg.autoWriteOnSave) {
         if ($Type -eq "shutdown" -or ($anaCfg.saveTriggers -contains "manual" -and $Type -eq "manual")) {
@@ -178,3 +176,4 @@ function Save-ATA-Full {
 
     return $path
 }
+

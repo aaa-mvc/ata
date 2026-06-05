@@ -1,16 +1,14 @@
 @echo off
-title ATA — Atlas Time Archive
+title ATA - Save Workspace
 cd /d D:\Hi\Projects\ata
-
 echo.
 echo ========================================
-echo   ATA — SAVING your workspace...
+echo   ATA - Saving your workspace...
 echo ========================================
 echo.
 powershell -ExecutionPolicy Bypass -File ".\ata.ps1" save
-
 echo.
 echo ========================================
-echo   Done! Press any key to close...
+echo   Done. Press any key to close.
 echo ========================================
 pause >nul
