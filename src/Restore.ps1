@@ -240,9 +240,8 @@ function Restore-ATA {
     }
 
     # 5. 閫愪釜鎭㈠
-    $priorityApps = @("clash-verge", "Clash Verge", "v2ray", "sing-box")
     $orderedWindows = $s.windows | Sort-Object {
-        if ($priorityApps -contains $_.process.name) { -999 } else { $_.zOrder }
+        if ($_.process.name -eq "clash-verge" -or $_.process.name -eq "Clash Verge") { -999 } else { $_.zOrder }
     }
     $results = @{
         total = $orderedWindows.Count
@@ -310,7 +309,7 @@ function Restore-ATA {
             continue
         }
 
-        $delay = if ($priorityApps -contains $window.process.name) { 3000 } else { $launchDelay }
+        $delay = if ($window.process.name -eq "clash-verge" -or $window.process.name -eq "Clash Verge") { 3000 } else { $launchDelay }
         Start-Sleep -Milliseconds $delay
         $hwnd = $proc.MainWindowHandle
 
