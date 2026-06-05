@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ata-project.github.io/snapshot-v1.0.json",
+  "title": "ATA Snapshot v1.0",
+  "description": "ATA 桌面会话快照格式。记录关机前的完整桌面状态，包括窗口、显示器、虚拟桌面和应用内部状态。",
+  "type": "object",
+  "required": ["version", "snapshot"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema 版本号，用于向后兼容",
+      "example": "1.0.0"
+    },
+    "snapshot": {
+      "type": "object",
+      "required": ["id", "created", "type", "environment", "windows"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "快照唯一标识符",
+          "pattern": "^ata-\\d{8}-\\d{6}$",
+          "example": "ata-20260606-231500"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "快照创建时间（ISO 8601，带时区）",
+          "example": "2026-06-06T23:15:00+08:00"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["shutdown", "auto", "manual"],
+          "description": "触发类型：shutdown=关机保存，auto=定时保存，manual=手动保存"
+        },
+        "hostname": {
+          "type": "string",
+          "description": "主机名，用于区分不同电脑的快照"
+        },
+        "anaDailyNote": {
+          "type": "string",
+          "description": "关联的 ANA 每日笔记文件名",
+          "example": "2026-06-06.md"
+        },
+        "environment": {
+          "type": "object",
+          "required": ["os", "monitors"],
+          "properties": {
+            "os": {
+              "type": "string",
+              "description": "操作系统版本",
+              "example": "Windows 11 Pro"
+            },
+            "hostname": {
+              "type": "string"
+            },
+            "monitors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["index", "bounds", "primary"],
+                "properties": {
+                  "index": { "type": "integer" },
+                  "name": { "type": "string" },
+                  "bounds": {
+                    "type": "object",
+                    "required": ["x", "y", "w", "h"],
+                    "properties": {
+                      "x": { "type": "integer" },
+                      "y": { "type": "integer" },
+                      "w": { "type": "integer" },
+                      "h": { "type": "integer" }
+                    }
+                  },
+                  "dpi": { "type": "integer", "description": "DPI 缩放百分比" },
+                  "primary": { "type": "boolean" },
+                  "serial": { "type": "string", "description": "显示器序列号，用于精确匹配" }
+                }
+              }
+            },
+            "virtualDesktops": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["index"],
+                "properties": {
+                  "index": { "type": "integer" },
+                  "name": { "type": "string" },
+                  "id": { "type": "string", "description": "Windows 虚拟桌面 GUID" }
+                }
+              }
+            }
+          }
+        },
+        "windows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "process", "bounds", "state"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "窗口在快照内的唯一 ID"
+              },
+              "process": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "description": "进程名（不含 .exe）" },
+                  "pid": { "type": "integer" },
+                  "commandLine": { "type": "string", "description": "完整命令行" },
+                  "executablePath": { "type": "string", "description": "可执行文件路径" }
+                }
+              },
+              "title": {
+                "type": "string",
+                "description": "窗口标题栏文字"
+              },
+              "class": {
+                "type": "string",
+                "description": "Windows 窗口类名"
+              },
+              "bounds": {
+                "type": "object",
+                "required": ["x", "y", "w", "h"],
+                "properties": {
+                  "x": { "type": "integer" },
+                  "y": { "type": "integer" },
+                  "w": { "type": "integer" },
+                  "h": { "type": "integer" }
+                }
+              },
+              "state": {
+                "type": "string",
+                "enum": ["normal", "maximized", "minimized", "hidden"],
+                "description": "窗口状态"
+              },
+              "monitor": {
+                "type": "integer",
+                "description": "所在显示器索引"
+              },
+              "virtualDesktop": {
+                "type": "integer",
+                "description": "所在虚拟桌面索引"
+              },
+              "zOrder": {
+                "type": "integer",
+                "description": "Z 序（窗口堆叠顺序，大的在上）"
+              },
+              "hadFocus": {
+                "type": "boolean",
+                "description": "快照保存时此窗口是否有焦点"
+              },
+              "restorable": {
+                "type": "boolean",
+                "default": true,
+                "description": "此窗口是否可恢复（UWP 应用可能为 false）"
+              },
+              "platform": {
+                "type": "string",
+                "enum": ["win32", "uwp", "electron", "unknown"],
+                "description": "应用平台类型"
+              },
+              "adapter": {
+                "type": "string",
+                "description": "关联的应用适配器名称（如 vscode, chrome, terminal）",
+                "nullable": true
+              },
+              "appState": {
+                "type": "object",
+                "description": "应用内部状态（由适配器定义结构）",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "config": {
+          "type": "object",
+          "description": "恢复策略配置",
+          "properties": {
+            "restoreOrder": {
+              "type": "string",
+              "enum": ["zOrder", "dependency", "alphabetical", "none"],
+              "default": "zOrder",
+              "description": "窗口恢复顺序策略"
+            },
+            "launchDelay": {
+              "type": "integer",
+              "default": 1500,
+              "description": "应用启动间隔（毫秒）"
+            },
+            "skipMissing": {
+              "type": "boolean",
+              "default": true,
+              "description": "是否跳过无法启动的应用"
+            },
+            "openAnaDailyNote": {
+              "type": "boolean",
+              "default": true,
+              "description": "恢复后是否打开 ANA 每日笔记"
+            }
+          }
+        }
+      }
+    }
+  }
+}
