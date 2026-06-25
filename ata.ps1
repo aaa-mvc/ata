@@ -70,6 +70,7 @@ function Show-ATAHelp {
 switch ($Command) {
     'save' {
         . "$srcDir\Snapshot.ps1"
+        . "$srcDir\DeepSeek.ps1"
         . "$srcDir\AnaBridge.ps1"
         Save-ATA-Full -Type manual
     }

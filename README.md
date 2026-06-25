@@ -3,7 +3,8 @@
 > **承载 · 秩序 · 守护** | 放心关机，一键回到昨天
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Phase](https://img.shields.io/badge/phase-3%20(active)-green.svg)](PROJECT_STATEMENT.md)
+[![Status](https://img.shields.io/badge/status-archived-lightgrey.svg)](#)
+> ⚠️ **项目已归档**（2026-06-25）。评估结论：Windows 桌面时间胶囊的价值有限——真正的工作现场是上下文（IDE 未保存编辑、终端状态、思路片断）而非窗口坐标，不关机比费力重建更可靠。代码和快照保留供参考，自动化已停止。详见 [CHANGELOG](CHANGELOG.md)。
 
 ATA 是一个 Windows 桌面会话时间胶囊。关机时一键保存完整工作现场（窗口、文件夹、应用状态），开机时一键恢复到昨天。内置 **DeepSeek / OpenAI 双 AI 洞察引擎**，自动分析你的工作模式。
 
